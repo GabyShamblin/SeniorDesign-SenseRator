@@ -1,37 +1,28 @@
 # SeniorDesign
 
-# Combined Pages
+# Design Proposal
 
 ### Motivations
-
 I have an interest in artificial intelligence and machine learning and have taken a few classes on the topic and thought this would be a great way to apply my skills to a real-world project. I also believe this project has the potential to make an impact in the future and be used in disaster surveillance and management, terrain mapping, ect.
 
 ### Ideas
-
 Our sponsor, Dr. Shaurya Agarwal, has left the project quite open-ended in regards to what technologies we will use, so we as a team have spent this time searching for what techniques and algorithms we can use. Our front-end/visualization will most likely be in Unity and back-end in Python and/or C++. Part of the visualization includes the detection of objects such as fallen trees, downed power lines, and debris, which will be achieved using object detection and instance segmentation. Gathering training data for our machine learning models is one of the main issues we have had to tackle, since we are focusing on use during disaster scenarios. Well-documented lidar data is few and far between and not exactly easy to replicate, so it is difficult to have enough data for effective training. In my opinion, the best ways to get around this problem would be to either use anomaly detection or simulated environments since neither options require the real-life disaster data that is so scarce. 
 
 # Video Object Detection
 
 ### What is object detection?
-
 Object detection is a technique in computer vision that detects objects (shocker) in an image or video, typically shown by a colored box around the detected object accompanied with a label of what the object is. It has many uses, a few examples being facial recognition, surveillance footage, and sports footage.
 
 ### How does it work?
-
 Typically there are two parts to an object detection method, an encoder and a decoder. The encoder takes an image or video frame and processes it to extract and locate objects, which are then labeled. The decoder then finds the bounding boxes and proper labels for those objects using predictions.
 
 ### Methods
-
 Due to the need for real-time footage, performance is a priority when searching for a method to employ. Post-Processing methods use frame-by-frame detection, which provides a significantly accuracy but worse performance. 3D Convolution is a multi-frame method that is better used for processing 3D images, such as MRI scans, and due to many multi-dimensional matrix computations performance is slow and cannot process in real time. Recurrent Neural Networks, another type of multi-frame method, are a special type of network that deals with sequential data. This architecture effectively creates long-term memory that helps to guide smaller neural networks which allows for must better performance, up to 70 frames per second (fps) in some cases on a mobile device. Optical Flow is a method where movement is estimated by comparing two frames. Sparse Feature Propagation falls under the Optical Flow umbrella and uses sparse key frames that is used in comparison for the next $n-1$ frames. The $n^{th}$ frame will be the next key frame. While this method is slightly less accurate, it is faster and more efficient then most.
 
-(Source: The Ultimate Guide to Video Object Detection)
-
 ### What should we use?
-
 Based solely on performance, Recurrent Neural Networks and Sparse Feature Propagation are the best contenders. Even though Recurrent Neural Networks are faster with slightly better accuracy, it has a complicated architecture and would be difficult to maintain and debug. Sparse Feature Propagation is slightly worse in comparison, but it still works well in the circumstances given and the simplicity of the code is better in the long run.
 
 Recurrent Neural Networks (RNN)
-
 - Up to 70 fps on a mobile device
 - Good accuracy
 - Very complex architecture
@@ -42,7 +33,6 @@ Recurrent Neural Networks (RNN)
     
 
 Sparse Feature Propagation (SFP)
-
 - Runs real-time
 - Slight drop in accuracy (~4.5%)
 - Simple architecture
@@ -52,12 +42,7 @@ Sparse Feature Propagation (SFP)
     Example of Sparse Feature Propagation
     
 
-### Sources
-
-- The Ultimate Guide to Video Object Detection - [https://towardsdatascience.com/ug-vod-the-ultimate-guide-to-video-object-detection-816a76073aef#3ddf](https://towardsdatascience.com/ug-vod-the-ultimate-guide-to-video-object-detection-816a76073aef#3ddf)
-
 # Camera-Lidar Fusion
-
 Cameras are good for perceiving an environment in 3D and lidar is good for determining distance from the vehicle, so using a combination of the two is best for object detection in autonomous vehicles. Fusion is the process of combining data from the camera and lidar systems. A few challenges of fusion include proper calibration between the camera and lidar (relative distance from each other), finding unique features in both sets of data to find a relationship, and either turning 3D lidar data into 2D or mapping 2D camera data onto 3D.
 
 ![An example of camera and lidar position calibration](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0866f43a-aac8-4c6b-b62a-4c9841568302/Untitled.webp)
@@ -69,7 +54,6 @@ An example of camera and lidar position calibration
 The result from fusion
 
 ### Unique Features
-
 One such challenge is finding unique features and using them to line up the lidar points to the camera data. Features that can be used to combine the data can be either intrinsic (a) or extrinsic (b).
 
 Marker detection with the point cloud looks like *$p_v=C_i*p_i$*, where $C_i$ is the camera’s intrinsic parameters (i.e. position), $p_i$ is the original point cloud data, and $p_v$ is the resulting point cloud from the camera’s POV. 
@@ -131,15 +115,10 @@ r_{31} & r_{32} & r_{33} & t_z \\
 \end{bmatrix}
 $$
 
-### Sources
-
-- Lidar and Camera Fusion Approach for Object Distance Estimation in Self-Driving Vehicles - [https://www.mdpi.com/2073-8994/12/2/324](https://www.mdpi.com/2073-8994/12/2/324)
-- Camera-Lidar Projection: Navigating Between 2D and 3D - [https://medium.com/swlh/camera-lidar-projection-navigating-between-2d-and-3d-911c78167a94](https://medium.com/swlh/camera-lidar-projection-navigating-between-2d-and-3d-911c78167a94)
 
 # Simulation
 
 ### Training Data
-
 Using simulated data allows for full control over different aspects of the data, the creation of different scenarios with relative ease, and the collection of pre-labeled data. The environment can be built using assets from the Unity asset store, creating models on Blender, or just using basic shapes provided by Unity in its editor. There exists a handful of packages created to simulate lidar and camera sensors, one such being Unity SensorSDK which is created and maintained by Unity for use in such cases. The package provides eleven different lidars, seven cameras, and many options for visualization and customization so we can test and tailor what data we need and what sensors we might use on the real vehicle.
 
 The Generic 3D Segmentation Lidar is one of the options that uses the Perception package to perform instance and semantic segmentation, which can be customized using the labels of objects to assign colors. There also exists the Velodyne Puck Lidar that is a recreation of a real lidar available on the market, and may be helpful to experiment and get an understanding of how the real lidar would work.
@@ -157,7 +136,3 @@ Real lidar data from a Velodyne Puck lidar
 ![Simulated lidar data from the Velodyne Puck lidar provided by Unity SensorSDK](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9c81c753-95a3-41d9-a2fd-02a0b327af8f/Untitled.jpeg)
 
 Simulated lidar data from the Velodyne Puck lidar provided by Unity SensorSDK
-
-### Sources
-
-- Unity SensorSDK Documentation - [https://docs.unity3d.com/Packages/com.unity.sensorsdk@2.0/manual/index.html](https://docs.unity3d.com/Packages/com.unity.sensorsdk@2.0/manual/index.html)
