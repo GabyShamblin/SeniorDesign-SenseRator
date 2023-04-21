@@ -10,7 +10,7 @@ print("Load a ply point cloud, print it, and render it")
 sample_ply_data = o3d.data.PLYPointCloud()
 
 # pcd = o3d.io.read_point_cloud(sample_ply_data.path)
-pcd = o3d.io.read_point_cloud("Hotel.ply")
+# pcd = o3d.io.read_point_cloud("Hotel.ply")
 # o3d.visualization.draw_geometries([pcd])
 
 # ----- Selection of areas -----
@@ -72,19 +72,19 @@ def demo_manual_registration():
   draw_registration_result(source, target, reg_p2p.transformation)
   print("")
 
-# demo_manual_registration()
+demo_manual_registration()
 
 # ----- Bounding boxes -----
 
  
-with o3d.utility.VerbosityContextManager(
-    o3d.utility.VerbosityLevel.Debug) as cm:
-  labels = np.array(
-    pcd.cluster_dbscan(eps=0.03, min_points=15, print_progress=False))
+# with o3d.utility.VerbosityContextManager(
+#     o3d.utility.VerbosityLevel.Debug) as cm:
+#   labels = np.array(
+#     pcd.cluster_dbscan(eps=0.03, min_points=15, print_progress=False))
 
-max_label = labels.max()
-print(f"point cloud has {max_label + 1} clusters")
-colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
-colors[labels < 0] = 0
-pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
-o3d.visualization.draw_geometries([pcd])
+# max_label = labels.max()
+# print(f"point cloud has {max_label + 1} clusters")
+# colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
+# colors[labels < 0] = 0
+# pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
+# o3d.visualization.draw_geometries([pcd])
