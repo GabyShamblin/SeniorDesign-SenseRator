@@ -2,6 +2,7 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import open3d as o3d
+import PySimpleGUI as sui
 
 # Reads .pcd, .ply, .pts, .obj, and .xyz files
 # Can be used in either Python or C++
@@ -9,9 +10,12 @@ import open3d as o3d
 print("Load a ply point cloud, print it, and render it")
 sample_ply_data = o3d.data.PLYPointCloud()
 
-# pcd = o3d.io.read_point_cloud(sample_ply_data.path)
-# pcd = o3d.io.read_point_cloud("Hotel.ply")
-# o3d.visualization.draw_geometries([pcd])
+layout = [[sui.Text("Hello, world")],
+          [sui.Button("This is a button")]]
+
+pcd = o3d.io.read_point_cloud(sample_ply_data.path)
+pcd = o3d.io.read_point_cloud("Hotel.ply")
+o3d.visualization.draw_geometries([pcd])
 
 # ----- Selection of areas -----
 def pick_points(pcd):
@@ -72,7 +76,7 @@ def demo_manual_registration():
   draw_registration_result(source, target, reg_p2p.transformation)
   print("")
 
-demo_manual_registration()
+# demo_manual_registration()
 
 # ----- Bounding boxes -----
 
