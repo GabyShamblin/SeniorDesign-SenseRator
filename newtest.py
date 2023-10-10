@@ -47,6 +47,9 @@ layout = [[sui.Text("This is a settings menu")],
 # Lighting?
 # Selecting (if time)
 
+# For video: https://www.pysimplegui.org/en/latest/Demos/#demo_media_playerpy
+# For lidar: http://www.open3d.org/docs/latest/python_api/open3d.visualization.O3DVisualizer.html
+
 # Show test options window
 def simpleui(vis):
 	window = sui.Window("More Options", layout)
