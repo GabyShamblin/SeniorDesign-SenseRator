@@ -15,10 +15,12 @@ app.initialize()
 
 point_cloud = o3d.io.read_point_cloud("Hotel.ply")
 
+# For SimpleUI
 layout = [[sui.Text("Hello, world"), sui.Text(size=(15,1), key='-TEXT-')],
           [sui.Text("This is a text box"), sui.InputText()],
 					[sui.Submit(), sui.Cancel()]]
 
+# Show test options window
 def simpleui(vis):
 	window = sui.Window("More Options", layout)
 
@@ -33,14 +35,31 @@ def simpleui(vis):
 
 	window.close()
 
+# Create point cloud window
 vis = o3d.visualization.O3DVisualizer("O3DVis", 700, 500)
-vis.add_action("More Options", simpleui)
+vis.add_action("Custom Options", simpleui)
 vis.add_geometry("Hotel", point_cloud)
 vis.reset_camera_to_default()
 
+# Automated actions:
+# Add/clear 3d label
+# Add/get/remove/update geometry
+# Animation stuff
+
+# User actions:
+# Export current image
+# Mouse mode (movement)
+# Show skybox
+# Point size
+# Scene shader
+# Lighting?
+# Selecting (if time)
+
+# Show window
 app.add_window(vis)
 app.run()
 
+# Normal visualizer (no skybox or menu)
 # main_vis = o3d.visualization.Visualizer()
 # main_vis.create_window("main_vis", 700, 500)
 # main_vis.add_geometry(point_cloud)
