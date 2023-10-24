@@ -8,6 +8,7 @@ This module has a rudimentary command line interface. For usage, run::
 
 		$ python -m ouster.sdk.examples.pcap -h
 """
+# RuntimeError: ftell error: errno 22 (line 64)
 
 import os
 import json
@@ -31,7 +32,7 @@ def pcap_to_pcd(source: client.PacketSource,
 		"Write scans from a pcap to pcd files (one per lidar scan)."
 
 		metadata = client.SensorInfo(json.dumps(json.load(open(metadata, 'r'))))
-		source = client.PacketSource(pcap.Pcap(source, metadata))
+		source = pcap.Pcap(source, metadata)
 
 		if (metadata.format.udp_profile_lidar ==
 						client.UDPProfileLidar.PROFILE_LIDAR_RNG19_RFL8_SIG16_NIR16_DUAL):
