@@ -5,6 +5,8 @@ import keyboard
 import open3d as o3d
 import open3d.visualization.gui as gui
 import PySimpleGUI as sui
+import convertLidar
+# import vlc
 
 print("Use SimpleGUI with point cloud window")
 
@@ -14,7 +16,13 @@ app.initialize()
 # sample_ply_data = o3d.data.PLYPointCloud()
 # pcd = o3d.io.read_point_cloud(sample_ply_data.path)
 
-point_cloud = o3d.io.read_point_cloud("Hotel.ply")
+hotel_cloud = o3d.io.read_point_cloud("Hotel.ply")
+car_file = convertLidar.pcap_to_ply("Data\car_lidar_test.pcap", "Data\car_lidar_metadata.json", ply_dir="Data\.")
+car_cloud = o3d.io.read_point_cloud("Data\car_lidar_test.pcap")
+# player = vlc.MediaPlayer()
+
+def ImageButton(title, key):
+	return sui.Button(title, border_width=0, key=key)
 
 # For SimpleUI
 layout = [[sui.Text("This is a settings menu")],
@@ -26,29 +34,12 @@ layout = [[sui.Text("This is a settings menu")],
 					[sui.Text(key='-UPDATE-')],
 					[sui.Submit(), sui.Cancel()]]
 
-# --- Events --- ALL THIS WORKS!!!
-# 0: mouse_mode = out
-# 1: vis.show_skybox(out)
-# 2: point_size = out
-# 3: scene_shader = out
-# Reset Camera: vis.reset_camera_to_default()
-
-# --- Automated actions ---
-# Add/clear 3d label
-# Add/get/remove/update geometry
-# Animation stuff
-
-# --- User actions ---
-# Export current image
-# Mouse mode (movement)
-# Show skybox
-# Point size
-# Scene shader
-# Lighting?
-# Selecting (if time)
-
-# For video: https://www.pysimplegui.org/en/latest/Demos/#demo_media_playerpy
-# For lidar: http://www.open3d.org/docs/latest/python_api/open3d.visualization.O3DVisualizer.html
+mediaLayout = [[sui.Text('Media File Player')],
+							 [sui.Text('', size=(15,2), key='-OUTPUT-')],
+							 [ImageButton('restart', key='-RESTART-'), 
+							  ImageButton('pause', key='-PAUSE-'),
+								ImageButton('next', key='-NEXT-'),
+								ImageButton('exit', key='-EXIT-')]]
 
 # Show test options window
 def simpleui(vis):
@@ -90,19 +81,61 @@ def simpleui(vis):
 
 	window.close()
 
+# Video player window
+def mediaPlayer(vis):
+	window = sui.Window("Video Player", mediaLayout);
+
+	while True:
+		event, values = window.read()
+		try:
+			if event == sui.WIN_CLOSED or event == 'Exit':
+				break
+			if event != sui.TIMEOUT_KEY:
+				window['-OUTPUT-'].update(event)
+		except:
+			print("Something went wrong")
+
+	window.close()
+
 # Create point cloud window
 vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
 vis.add_action("Custom Options", simpleui)
-vis.add_geometry("Hotel", point_cloud)
+vis.add_action("Video Player", mediaPlayer)
+vis.add_geometry("Hotel", hotel_cloud)
+# vis.add_geometry("Car", car_cloud)
 vis.reset_camera_to_default()
 
 # Show window
 app.add_window(vis)
 app.run()
 
+# --- Events --- ALL THIS WORKS!!!
+# 0: mouse_mode = out
+# 1: vis.show_skybox(out)
+# 2: point_size = out
+# 3: scene_shader = out
+# Reset Camera: vis.reset_camera_to_default()
+
+# --- Automated actions ---
+# Add/clear 3d label
+# Add/get/remove/update geometry
+# Animation stuff
+
+# --- User actions ---
+# Export current image
+# Mouse mode (movement)
+# Show skybox
+# Point size
+# Scene shader
+# Lighting?
+# Selecting (if time)
+
+# For video: https://www.pysimplegui.org/en/latest/Demos/#demo_media_playerpy
+# For lidar: http://www.open3d.org/docs/latest/python_api/open3d.visualization.O3DVisualizer.htmls
+
 # Normal visualizer (no skybox or menu)
 # main_vis = o3d.visualization.Visualizer()
 # main_vis.create_window("main_vis", 700, 500)
-# main_vis.add_geometry(point_cloud)
+# main_vis.add_geometry(hotel_cloud)
 # main_vis.run()
 # main_vis.destroy_window()
