@@ -1,3 +1,4 @@
 *.pcap
 *.ply
+*.pcd
 __pycache__/convertLidar.cpython-39.pyc
