@@ -3,7 +3,8 @@ import time
 import open3d as o3d
 import open3d.visualization.gui as gui
 import PySimpleGUI as sui
-import convertLidar
+import convertCloud
+import convertImage
 # import vlc
 
 print("Animated point cloud test")
@@ -11,11 +12,11 @@ print("Animated point cloud test")
 app = o3d.visualization.gui.Application.instance
 app.initialize()
 
-path = ".\Data\pcd_files"
+path = r".\Data\pcd_files"
 
 # Unpack point clouds to seperate files
 # try:
-# 	convertLidar.pcap_to_pcd("Data\car_lidar_test.pcap", "Data\car_lidar_metadata.json", pcd_dir=f"{path}\.")
+# 	convertCloud.pcap_to_pcd("Data\car_lidar_test.pcap", "Data\car_lidar_metadata.json", pcd_dir=f"{path}\.")
 # except Exception as e:
 # 	print(e)
 
@@ -107,9 +108,7 @@ def mediaPlayer(vis):
 
 def setup_depth_streaming():
 	# Change file directory 
-	print("Old directory:", os.getcwd())
 	os.chdir(path)
-	print("New directory:", os.getcwd())
 
 def setup_point_clouds():
 	point_cloud = o3d.geometry.PointCloud()
@@ -150,11 +149,10 @@ try:
 	for file in os.listdir():
 		if file.endswith(".pcd"):
 			# FILE WONT OPEN ??? -------------------------------------------------------
-			update_point_clouds(f"{path}\{file}")
+			update_point_clouds(f"{os.getcwd()}\{file}")
 			update_scene()
 			run_one_tick()
 			print("Open file", file, point_cloud)
-			break
 			time.sleep(1)
 except Exception as e:
 	print(e)
