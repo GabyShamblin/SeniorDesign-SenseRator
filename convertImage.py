@@ -1,25 +1,8 @@
 import os
-import sys
 import cv2
 import numpy as np
-import rawpy
-import imageio
 
 path = 'Data\\raw_images'
-
-def usingRawpy(file_path):
-	raw = rawpy.imread(file_path)
-	rgb = raw.postprocess()
-	imageio.imsave('test.jpeg', rgb)
-
-	# try:
-	# except Exception as e:
-	# 	print(e)
-	for file in os.listdir():
-		if file.endswith(".raw"):
-			raw = rawpy.imread(f'{path}\{file}')
-			thumb = raw.extract_thumb()
-			time.sleep(1)
 
 def grayscale(file_path, resize=None):
 	fd = open(file_path)

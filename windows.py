@@ -100,6 +100,7 @@ def mediaPlayer(vis = None):
 
 		for file in frames:
 			if file.endswith(".raw"):
+				
 				event, values = window.read()
 				print("Event", event)
 

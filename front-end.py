@@ -94,11 +94,6 @@ try:
 except Exception as e:
 	print(e)
 
-# app.run()
-
-# For video: https://www.pysimplegui.org/en/latest/Demos/#demo_media_playerpy
-# For lidar: http://www.open3d.org/docs/latest/python_api/open3d.visualization.O3DVisualizer.htmls
-
 # Normal visualizer (no skybox or menu)
 # main_vis = o3d.visualization.Visualizer()
 # main_vis.create_window("main_vis", 700, 500)
