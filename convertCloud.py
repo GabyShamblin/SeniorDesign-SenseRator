@@ -15,8 +15,6 @@ import json
 from ouster import client, pcap
 from typing_extensions import Protocol
 
-
-
 # source: 	.pcap file
 # metadata:	SensorInfo for .pcap
 # num: 			Scan number
@@ -67,8 +65,7 @@ def pcap_to_pcd(source: client.PacketSource,
 
 				pcd = o3d.geometry.PointCloud()  # type: ignore
 
-				pcd.points = o3d.utility.Vector3dVector(xyz.reshape(-1,
-																														3))  # type: ignore
+				pcd.points = o3d.utility.Vector3dVector(xyz.reshape(-1, 3))  # type: ignore
 
 				pcd_path = os.path.join(pcd_dir, f'{pcd_base}_{idx:06d}.{pcd_ext}')
 				print(f'write frame #{idx} to file: {pcd_path}')

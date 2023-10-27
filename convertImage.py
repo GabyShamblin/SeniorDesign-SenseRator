@@ -21,17 +21,20 @@ def usingRawpy(file_path):
 			thumb = raw.extract_thumb()
 			time.sleep(1)
 
-def grayscale(file_path):
+def grayscale(file_path, resize=None):
 	fd = open(file_path)
-	rows = 1080
-	cols = 1440
+	# rows = 1080
+	# cols = 1440
+	cols, rows = size
 	f = np.fromfile(fd, dtype=np.uint8,count=rows*cols)
 	im = f.reshape((rows, cols)) #notice row, column format
-	fd.close()
+	if resize != None:
+		im = cv2.resize(im, dsize=resize, interpolation=cv2.INTER_AREA)
 
-	cv2.imshow('Test Drive', im)
+	return im
+	# cv2.imshow('Test Drive', im)
 	# 17 ms = 60 fps
-	cv2.waitKey(16)
+	# cv2.waitKey(17)
 	# cv2.destroyAllWindows()
 
 # os.chdir(path)
