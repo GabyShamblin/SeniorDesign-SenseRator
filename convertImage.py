@@ -6,9 +6,8 @@ path = 'Data\\raw_images'
 
 def grayscale(file_path, resize=None):
 	fd = open(file_path)
-	# rows = 1080
-	# cols = 1440
-	cols, rows = size
+	rows = 1080
+	cols = 1440
 	f = np.fromfile(fd, dtype=np.uint8,count=rows*cols)
 	im = f.reshape((rows, cols)) #notice row, column format
 	if resize != None:
@@ -19,12 +18,3 @@ def grayscale(file_path, resize=None):
 	# 17 ms = 60 fps
 	# cv2.waitKey(17)
 	# cv2.destroyAllWindows()
-
-# os.chdir(path)
-# print("Path:", os.getcwd())
-# for file in os.listdir():
-# 	if file.endswith(".raw"):
-# 		print(f'{os.getcwd()}\{file}')
-# 		grayscale(f'{os.getcwd()}\{file}')
-
-# cv2.destroyAllWindows()

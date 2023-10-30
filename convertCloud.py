@@ -13,7 +13,6 @@ This module has a rudimentary command line interface. For usage, run::
 import os
 import json
 from ouster import client, pcap
-from typing_extensions import Protocol
 
 # source: 	.pcap file
 # metadata:	SensorInfo for .pcap
@@ -21,6 +20,8 @@ from typing_extensions import Protocol
 # pcd_dir: 	Directory to place .pcd
 # pcd_base:	Base name for .pcd
 # pcd_ext:	File extenstion
+
+# Unpack .pcap to .pcd's
 def pcap_to_pcd(source: client.PacketSource,
 								metadata: client.SensorInfo,
 								num: int = 0,
@@ -72,8 +73,7 @@ def pcap_to_pcd(source: client.PacketSource,
 
 				o3d.io.write_point_cloud(pcd_path, pcd)  # type: ignore
 
-
-
+# Unpack .pcap to .ply's
 def pcap_to_ply(source: client.PacketSource,
 								metadata: client.SensorInfo,
 								num: int = 0,
