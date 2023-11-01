@@ -2,5 +2,4 @@
 *.ply
 *.pcd
 *.raw
-__pycache__/convertLidar.cpython-39.pyc
 package-lock.json
