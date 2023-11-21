@@ -1,11 +1,35 @@
-import PySimpleGUI as sg
-import cv2
-import time
-import numpy as np
 import os
+import cv2
+import sys
+import time
+import keyboard
+import numpy as np
+import PySimpleGUI as sg
+from ultralytics import YOLO
+
+import lidar
 import convertImage
 
-resize = (789,592) # 4:3 ratio
+def programEnd():
+    print('Bye bye')
+    sys.exit()
+keyboard.add_hotkey('esc', programEnd)
+
+resize = (820,615) # 4:3 ratio
+
+# Stores object detections information as YOLO results objects
+frame_results = []
+
+# Object detection model. 
+model = YOLO('model.pt')
+
+def timestamp(filename):
+    ts = filename.split('_')[1:]
+    ts = ts[:5]+ts[5].split('.')[:2]
+    s = float(ts[2]) * (24 * 60 * 60) + float(ts[3]) * (60 * 60) + float(ts[4]) * 60 + float(ts[5]) * 1 + float(ts[6]) * .0001
+    
+    return s
+
 def ImageButton(title, key):
 	return sg.Button(title, border_width=0, key=key)
 
@@ -28,6 +52,20 @@ def set_layout(state, info = []):
             [sg.Button('Open Folder')]
         ]
 
+    elif state in ('folder select'):
+        layout += [
+            [sg.Frame('Images', [
+                [sg.InputText(key='-IMGS-', change_submits=True), 
+                 sg.FolderBrowse(target='-IMGS-')]] )],
+            [sg.Frame('Point Clouds', [
+                [sg.Push(), sg.Radio('.pcd/.ply', 0, default=True), 
+                 sg.Push(), sg.Radio('.pcap', 0), sg.Push()], 
+                [sg.InputText(key='-PCS-', change_submits=True), 
+                 sg.FolderBrowse(target='-PCS-')]] )],
+            [sg.Text(key='-UPDATE-')],
+            [sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]
+        ]
+
     elif state in ('folder selected'):
         n = info[0]
         time = [int(n/600), int((n/10)%60)]
@@ -48,7 +86,6 @@ def set_layout(state, info = []):
     elif state in ('object detected'):
         num_frames = info[0]
         layout += [
-            [sg.Text('Embedded video display via opencv. Pointcloud rendering opens in new window.')],
             [sg.Image(key='-IMAGE-', size=resize, background_color='black')],
             [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
             [ImageButton('Restart', key='-RESTART-'), 
@@ -62,18 +99,70 @@ def set_layout(state, info = []):
 
     layout[-1].append(sg.Sizegrip())
 
-    window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center')
+    window = None
+    if state in ('startup'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(750,850))
+    elif state in ('processing'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(550,850))
+    elif state in ('object detected'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(20,20))
+    else:
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center')
     window.set_min_size(window.size)
     return window
 
 
+
+# Let user input folders for images and point clouds
+def folder_select(window):
+    window = set_layout('folder select')
+    folder = ''
+    files = np.asarray([])
+
+    while True:
+        event, values = window.read()
+
+        try:
+            folderCam = values['-IMGS-']
+            folderLid = values['-PCS-']
+
+            # Image folder changed, update time text
+            if (event == '-IMGS-'):
+                n = len(os.listdir(folderCam))
+                time = [int(n/600), int((n/10)%60)]
+                window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
+            
+            if (event == 'Ok'):
+                window['-UPDATE-'].update('Loading...')
+                window.Refresh()
+
+                if folderLid in (None, ''):
+                    window['-UPDATE-'].update('No point cloud folder selected.')
+                else:
+                    lidar.initWindow(folderLid, values[0])
+
+                files = np.asarray(os.listdir(folderCam))
+                size = files.size
+                frames = files[0:size-3]
+                if folderCam in (None, ''):
+                    window['-UPDATE-'].update('No image folder selected.')
+                else:
+                    break
+            
+            if event in ('Cancel', sg.WIN_CLOSED):
+                window.close()
+                window = set_layout('folder selected', [frames.size])
+        except Exception as e:
+            window['-UPDATE-'].update('Something went wrong.')
+            print(e)
+    
+    window.close()
+    window = set_layout('folder selected', [frames.size])
+    return folderCam, frames, window
+
 def main():
     window = set_layout('startup')
     folder = ''
-    # LiDar packets
-    pcap = []
-    # Metadata for LiDar visualization in Ouster
-    json = []
     # RGB video frames
     frames = []
 
@@ -84,47 +173,35 @@ def main():
         
         # Open output folder from vehicle
         if event in ('Open Folder'):
-            folder = ''
-            while(folder == '') :
-                folder = sg.popup_get_folder('Choose your folder', keep_on_top=True)
-            files = np.asarray(os.listdir(folder))
-            size = files.size
-            pcap = files[size-1]
-            json = files[size-2]
-            frames = files[0:size-3]
-            
-            if folder not in (None, ''):
-                window.close()
-                window = set_layout('folder selected', [frames.size])
+            folder, frames, window = folder_select(window)
 
         # Process images and pcap file from vehicle output
         elif event in ('Confirm'):
             window.close()
             window = set_layout('processing', [frames.size])
             progress_bar = window['-PROGRESS BAR-']
-            import time
+            
             for i in range(frames.size):
-                # Read in image to array
-                # Do object detection on image
+                # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
+                img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
+                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.8)
+                frame_results.append(results[0])
+
+                # Grab lidar frame
+                lidar.readFile(i)
 
                 progress_bar.update(current_count = i+1)
 
-            # Process PCAP file
-
-            # Pair images with LiDar scan
             
             window.close()
             window = set_layout('object detected', [frames.size])
 
-            # Vision Results are displayed
-
             img_elem = window['-IMAGE-']
             img_test = img_elem
             slider_elem = window['-SLIDER-']
-            fps = 10 # 1000 ms / 10 fps = 100 ms per frame
-            spf = 1/fps
+           
 
-            # Play Video
+            # Play video
             cur_frame = 0
             paused = True
             while True:
@@ -142,32 +219,28 @@ def main():
                             raise Exception('RestartVideo')
 
                     t = time.time()
+                    dur = timestamp(frames[cur_frame+1]) - timestamp(frames[cur_frame])
                     event, values = window.read(timeout=0)
+
                     if event in ('Cancel', None, 'Exit', 'Back'):
                         break
 
+                    # Update image to slider
                     if int(values['-SLIDER-']) != cur_frame-1 and cur_frame != 0:
                         cur_frame = int(values['-SLIDER-'])
 
+                    # Update slider
                     slider_elem.update(cur_frame)
-                    cur_frame = (cur_frame + 1)%frames.size
+                    cur_frame = (cur_frame + 1)%(frames.size-3)
                     
-                    bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
-                    # --==-- Plan B --==--
-                    # If calling the file for each frame ends up taking too long at runtime,
-                    # the ML algo can be initialized before this loop and called for each
-                    # frame as in Plan A
-                    #
-                    #
-                    # --==-- TODO Jose (Plan A) --==--
-                    # bgr_image is a 720x540 np array in cv2's bgr format
-                    # import your file at the head of main
-                    # run machine learning on bgr_image here
-                    # detected_image = yourfile.yourfuncion(bgr_image)
-                    # Change from bgr_image to detected_image
-                    frame = bgr_image
+                    # img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
+                    img = frame_results[cur_frame].plot()
+
+                    # Load image and cloud frames
+                    frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
+                    lidar.readFile(cur_frame)
 
                     # Read events while playing
                     try:
@@ -186,13 +259,14 @@ def main():
                             print(e)
 
                     # Limits FPS by counting the seconds spent on each frame
-                    while(time.time()-t < spf):
+                    while(time.time()-t < dur):
                         pass
                     
                     # DEBUGGING / TESTING
                     # Uncomment to test the time spent on each frame by the program
                     # To unlimit fps, change fps variable to 1000 or something high like that
                     # print(time.time()-t)
+
                 # Catch errors and use for restarting (from pause)
                 except Exception as e:
                     if str(e) == 'RestartVideo':
@@ -205,25 +279,20 @@ def main():
                     else:
                         print(e)
 
-
-    
-
-        #elif event in ():
         if event in ('Cancel', 'Back'):
-            pcap = []
-            json = []
             frames = []
-
+            lidar.resetScene()
             window.close()
             window = set_layout('startup')
 
         # End of Program
-        if event in (None, 'Exit'):
+        if event in (None, 'Exit', sg.WIN_CLOSED):
             window.close()
             break
             
-            
     return 0
+
+
 
 if __name__ == '__main__':
     sg.theme('DarkAmber')
